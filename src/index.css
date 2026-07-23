@@ -6,6 +6,11 @@
   --font-serif: 'Instrument Serif', serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Hover / press micro-interactions (buttons, cards) ─── */
 .interactive {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -15,9 +20,68 @@
 .interactive:active {
   transform: translateY(-1px) scale(0.98);
 }
+
+/* ─── Continuous pulse — primary CTAs only ─── */
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(255,176,0,0.48); }
+  50% { transform: scale(1.035); box-shadow: 0 14px 38px rgba(255,176,0,0.62); }
+}
+.pulse-cta {
+  animation: pulse-glow 2.6s ease-in-out infinite;
+}
+
+/* ─── Scroll reveal — fade/directional, stagger via --reveal-delay ─── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal='left'] { transform: translateX(-32px); }
+[data-reveal='right'] { transform: translateX(32px); }
+[data-reveal='scale'] { transform: scale(0.92); }
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ─── Pop-in — badges, checkmarks, "Faux." stamp ─── */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+  65% { opacity: 1; transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+[data-pop] {
+  opacity: 0;
+  animation: pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-play-state: paused;
+  animation-delay: var(--pop-delay, 0ms);
+}
+[data-pop].is-visible {
+  animation-play-state: running;
+}
+
+/* ─── Draw-on — hand-drawn decorative SVG strokes ─── */
+[data-draw] path {
+  stroke-dasharray: 240;
+  stroke-dashoffset: 240;
+  transition: stroke-dashoffset 1s ease;
+  transition-delay: var(--draw-delay, 0ms);
+}
+[data-draw].is-visible path {
+  stroke-dashoffset: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .interactive, .interactive:hover, .interactive:active {
-    transform: none;
-    transition: none;
+  .interactive, .interactive:hover, .interactive:active,
+  [data-reveal], [data-reveal].is-visible,
+  [data-pop], [data-pop].is-visible,
+  [data-draw] path, [data-draw].is-visible path {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
   }
+  .pulse-cta { animation: none; }
 }

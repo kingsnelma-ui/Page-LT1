@@ -1,5 +1,117 @@
 import { useState, useEffect, useRef } from 'react'
 
+/* ─── ANIMATION INFRASTRUCTURE ──────────────────────────────
+   Scroll reveal (fade/directional/pop/draw-on) + count-up +
+   typewriter. Kept centralized so every section uses the same
+   system instead of one-off effects. */
+
+function useScrollReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll('[data-reveal], [data-pop], [data-draw]')
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible')
+            obs.unobserve(e.target)
+          }
+        })
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' }
+    )
+    els.forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
+  }, [])
+}
+
+function Counter({ value, suffix = '', duration = 1600 }: { value: number; suffix?: string; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setDisplay(value)
+      return
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return
+          const start = performance.now()
+          const step = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1)
+            const eased = 1 - Math.pow(1 - progress, 3)
+            setDisplay(Math.round(value * eased))
+            if (progress < 1) requestAnimationFrame(step)
+          }
+          requestAnimationFrame(step)
+          obs.unobserve(el)
+        })
+      },
+      { threshold: 0.6 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [value, duration])
+
+  return (
+    <span ref={ref}>
+      {display}
+      {suffix}
+    </span>
+  )
+}
+
+function TypewriterText({ text, speed = 90 }: { text: string; speed?: number }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const [shown, setShown] = useState('')
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setShown(text)
+      return
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !started) {
+            setStarted(true)
+            obs.unobserve(el)
+          }
+        })
+      },
+      { threshold: 0.6 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [started, text])
+
+  useEffect(() => {
+    if (!started) return
+    let i = 0
+    const id = setInterval(() => {
+      i += 1
+      setShown(text.slice(0, i))
+      if (i >= text.length) clearInterval(id)
+    }, speed)
+    return () => clearInterval(id)
+  }, [started, text, speed])
+
+  return (
+    <span ref={ref}>
+      {shown || '\u00A0'}
+      {started && shown.length < text.length && <span style={{ opacity: 0.5 }}>|</span>}
+    </span>
+  )
+}
+
 /* ─── Design tokens ─── */
 const Y = '#FFB000'
 const K = '#030303'
@@ -13,10 +125,17 @@ const SERIF = "'Instrument Serif', serif"
 
 /* ─── Tiny SVG helpers ─── */
 
-function WavyLine({ w = 100 }: { w?: number }) {
+function WavyLine({ w = 100, draw = false }: { w?: number; draw?: boolean }) {
   const h = 7
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none" style={{ display: 'block' }}>
+    <svg
+      {...(draw ? { 'data-draw': true } : {})}
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      fill="none"
+      style={{ display: 'block' }}
+    >
       <path
         d={`M0 ${h / 2} Q${w * 0.125} 0 ${w * 0.25} ${h / 2} Q${w * 0.375} ${h} ${w * 0.5} ${h / 2} Q${w * 0.625} 0 ${w * 0.75} ${h / 2} Q${w * 0.875} ${h} ${w} ${h / 2}`}
         stroke={Y}
@@ -235,7 +354,11 @@ function Header({ scrolled }: { scrolled: boolean }) {
           Malo GBN
         </span>
       </div>
-      <button
+      <a
+        href="https://malogbn.mychariow.online"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="interactive"
         style={{
           background: Y,
           color: K,
@@ -251,10 +374,11 @@ function Header({ scrolled }: { scrolled: boolean }) {
           gap: 5,
           boxShadow: '0 4px 14px rgba(255,176,0,0.38)',
           letterSpacing: -0.2,
+          textDecoration: 'none',
         }}
       >
         Rejoindre <span style={{ fontSize: 15 }}>→</span>
-      </button>
+      </a>
     </header>
   )
 }
@@ -305,6 +429,7 @@ function Hero() {
       <div style={{ padding: '0 22px', position: 'relative', zIndex: 1 }}>
         {/* Ribbon badge */}
         <div
+          data-reveal
           style={{
             display: 'inline-block',
             background: Y,
@@ -325,6 +450,7 @@ function Hero() {
 
         {/* Hero title */}
         <h1
+          data-reveal
           style={{
             fontSize: 50,
             lineHeight: 1.0,
@@ -333,9 +459,10 @@ function Hero() {
             margin: '0 0 14px',
             letterSpacing: -2,
             fontFamily: SANS,
+            ['--reveal-delay' as string]: '120ms',
           }}
         >
-          Votre
+          Ma
           <br />
           boutique{' '}
           <span style={{ color: Y }}>pro</span>
@@ -355,6 +482,7 @@ function Hero() {
 
         {/* Subtitle */}
         <p
+          data-reveal
           style={{
             color: GRAY,
             fontSize: 14.5,
@@ -363,13 +491,17 @@ function Hero() {
             maxWidth: 270,
             fontFamily: SANS,
             fontWeight: 500,
+            ['--reveal-delay' as string]: '220ms',
           }}
         >
-          La vitrine en ligne qui convertit, construite 100% depuis votre smartphone.
+          La vitrine en ligne qui convertit, construite 100% depuis mon smartphone.
         </p>
 
         {/* CTA button */}
-        <button
+        <a
+          href="#produits"
+          data-reveal
+          className="pulse-cta"
           style={{
             background: Y,
             color: K,
@@ -386,24 +518,29 @@ function Hero() {
             alignItems: 'center',
             gap: 7,
             letterSpacing: -0.3,
+            textDecoration: 'none',
+            width: 'fit-content',
+            ['--reveal-delay' as string]: '320ms',
           }}
         >
           Découvrir la page
           <span style={{ fontSize: 17, fontWeight: 400 }}>→</span>
-        </button>
+        </a>
 
         {/* Stats module — slightly offset from grid */}
         <div
+          data-reveal
           style={{
             display: 'inline-flex',
             gap: 20,
             alignItems: 'center',
             marginLeft: -4,
+            ['--reveal-delay' as string]: '420ms',
           }}
         >
           <div>
             <div style={{ fontSize: 28, fontWeight: 800, color: K, fontFamily: SANS, letterSpacing: -1.2, lineHeight: 1 }}>
-              10+
+              <Counter value={10} suffix="+" />
             </div>
             <div style={{ fontSize: 11, color: GRAY, fontWeight: 500, marginTop: 3, fontFamily: SANS }}>
               sites créés
@@ -412,7 +549,7 @@ function Hero() {
           <div style={{ width: 1, height: 40, background: BORDER }} />
           <div>
             <div style={{ fontSize: 28, fontWeight: 800, color: K, fontFamily: SANS, letterSpacing: -1.2, lineHeight: 1 }}>
-              100%
+              <Counter value={100} suffix="%" />
             </div>
             <div style={{ fontSize: 11, color: GRAY, fontWeight: 500, marginTop: 3, fontFamily: SANS }}>
               smartphone
@@ -425,7 +562,8 @@ function Hero() {
       <div style={{ padding: '36px 22px 0', position: 'relative', zIndex: 1 }}>
         {/* Curved arrow from text area toward badge */}
         <svg
-          style={{ position: 'absolute', top: 2, right: 64, zIndex: 5 }}
+          data-draw
+          style={{ position: 'absolute', top: 2, right: 64, zIndex: 5, ['--draw-delay' as any]: '900ms' }}
           width="72"
           height="52"
           viewBox="0 0 72 52"
@@ -453,6 +591,7 @@ function Hero() {
 
         {/* The blob — organic shape: large TR and BL radii */}
         <div
+          data-reveal="scale"
           style={{
             background: K,
             borderRadius: '18px 62px 18px 58px',
@@ -464,6 +603,7 @@ function Hero() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
+            ['--reveal-delay' as string]: '500ms',
           }}
         >
           <PhoneMockup />
@@ -520,6 +660,7 @@ function Hero() {
 
         {/* P2P™ badge — overlaps the blob top edge */}
         <div
+          data-pop
           style={{
             position: 'absolute',
             top: 18,
@@ -539,6 +680,7 @@ function Hero() {
             zIndex: 3,
             textAlign: 'center',
             lineHeight: 1.2,
+            ['--pop-delay' as string]: '1000ms',
           }}
         >
           P2P™
@@ -597,7 +739,7 @@ function Problem() {
       </div>
 
       {/* Quote */}
-      <div style={{ marginBottom: 36 }}>
+      <div style={{ marginBottom: 36 }} data-reveal="left">
         <p
           style={{
             fontSize: 23,
@@ -618,9 +760,10 @@ function Problem() {
                 left: 0,
                 right: 0,
                 display: 'block',
+                ['--draw-delay' as any]: '500ms',
               }}
             >
-              <WavyLine w={104} />
+              <WavyLine w={104} draw />
             </span>
           </span>
           ."
@@ -629,10 +772,12 @@ function Problem() {
 
       {/* Response block with thick left border */}
       <div
+        data-reveal
         style={{
           paddingLeft: 18,
           borderLeft: `4px solid ${K}`,
           position: 'relative',
+          ['--reveal-delay' as string]: '700ms',
         }}
       >
         <p
@@ -657,9 +802,10 @@ function Problem() {
             lineHeight: 1.1,
             margin: '0 0 10px',
             fontWeight: 400,
+            minHeight: 34,
           }}
         >
-          Faux.
+          <TypewriterText text="Faux." speed={110} />
         </p>
         <p
           style={{
@@ -672,7 +818,7 @@ function Problem() {
             maxWidth: 300,
           }}
         >
-          Page LT1 est construite pour être gérée 100% depuis votre téléphone. Commandes, produits, paiements — tout en poche.
+          La preuve, c'est cette page. Construite entièrement depuis mon téléphone, avec la méthode Phone2Page™ — celle que je partage juste en dessous.
         </p>
       </div>
     </section>
@@ -873,11 +1019,18 @@ function Proof() {
   return (
     <section style={{ padding: '60px 22px 52px', background: BG, overflow: 'hidden', position: 'relative' }}>
       {/* Arc behind serif word */}
-      <svg style={{ position: 'absolute', top: 54, left: 16, zIndex: 0 }} width="90" height="44" viewBox="0 0 90 44" fill="none">
+      <svg
+        data-draw
+        style={{ position: 'absolute', top: 54, left: 16, zIndex: 0, ['--draw-delay' as any]: '300ms' }}
+        width="90"
+        height="44"
+        viewBox="0 0 90 44"
+        fill="none"
+      >
         <path d="M6 38 C6 16 84 16 84 38" stroke={Y} strokeWidth="2" fill="none" opacity="0.4" strokeLinecap="round" />
       </svg>
 
-      <div style={{ marginBottom: 28, position: 'relative', zIndex: 1 }}>
+      <div data-reveal style={{ marginBottom: 28, position: 'relative', zIndex: 1 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: GRAY, marginBottom: 12, fontFamily: SANS, textTransform: 'uppercase' }}>
           Build in public
         </div>
@@ -893,14 +1046,15 @@ function Proof() {
             {avatarData.map((a, i) => (
               <div
                 key={i}
+                data-pop
                 style={{
                   width: 34, height: 34, borderRadius: '50%',
                   background: a.color, border: `2.5px solid ${BG}`,
                   marginLeft: i === 0 ? 0 : -10,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 12, fontWeight: 700, color: K, fontFamily: SANS,
-                  transform: `translateY(${a.offset}px)`,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  ['--pop-delay' as string]: `${i * 140}ms`,
                 }}
               >
                 {a.initial}
@@ -908,7 +1062,7 @@ function Proof() {
             ))}
           </div>
           <div style={{ fontSize: 13, fontFamily: SANS, fontWeight: 500, color: GRAY }}>
-            <strong style={{ color: K }}>10+ sites</strong> déjà créés
+            <strong style={{ color: K }}><Counter value={10} suffix="+ sites" /></strong> déjà créés
           </div>
         </div>
       </div>
@@ -922,7 +1076,9 @@ function Proof() {
         }}
       >
         {SITE_CARDS.map((card, i) => (
-          <SiteCard key={i} card={card} />
+          <div key={i} data-reveal style={{ ['--reveal-delay' as string]: `${(i % 2) * 90 + Math.floor(i / 2) * 90}ms` }}>
+            <SiteCard card={card} />
+          </div>
         ))}
       </div>
     </section>
@@ -932,8 +1088,10 @@ function Proof() {
 /* ─── 5. LES PRODUITS ─── */
 
 function Products() {
+  const CHARIOW = 'https://malogbn.mychariow.online'
   return (
     <section
+      id="produits"
       style={{
         padding: '58px 22px 64px',
         background: BG,
@@ -974,6 +1132,7 @@ function Products() {
       </div>
 
       <div
+        data-reveal
         style={{
           fontSize: 10,
           fontWeight: 700,
@@ -987,6 +1146,7 @@ function Products() {
         Les produits
       </div>
       <h2
+        data-reveal
         style={{
           fontSize: 32,
           fontWeight: 800,
@@ -994,6 +1154,7 @@ function Products() {
           margin: '0 0 34px',
           letterSpacing: -0.9,
           fontFamily: SANS,
+          ['--reveal-delay' as string]: '80ms',
         }}
       >
         Deux offres,{' '}
@@ -1004,9 +1165,10 @@ function Products() {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* Card 1 — Light/White — Masterclass */}
-        <div style={{ position: 'relative', marginBottom: -26, zIndex: 2 }}>
+        <div data-reveal="left" style={{ position: 'relative', marginBottom: -26, zIndex: 2 }}>
           {/* Badge overflowing top edge */}
           <div
+            data-pop
             style={{
               position: 'absolute',
               top: -14,
@@ -1021,9 +1183,10 @@ function Products() {
               fontFamily: SANS,
               boxShadow: '0 4px 14px rgba(255,176,0,0.38)',
               letterSpacing: 0.2,
+              ['--pop-delay' as string]: '300ms',
             }}
           >
-            Masterclass
+            Le système
           </div>
 
           <div
@@ -1038,23 +1201,19 @@ function Products() {
             <div style={{ fontSize: 11.5, color: GRAY, fontFamily: SANS, fontWeight: 600, marginBottom: 6 }}>
               Phone2Page™ Masterclass
             </div>
-            {/* Price placeholder */}
             <div
               style={{
                 display: 'inline-block',
-                fontSize: 34,
+                fontSize: 30,
                 fontWeight: 800,
-                color: '#C8C2BA',
+                color: K,
                 fontFamily: SANS,
-                letterSpacing: -1.5,
-                marginBottom: 8,
+                letterSpacing: -1.2,
+                marginBottom: 10,
                 lineHeight: 1,
-                border: `2px dashed #D6D0C7`,
-                borderRadius: 8,
-                padding: '2px 12px',
               }}
             >
-              [PRIX]
+              15 000 FCFA
             </div>
             <p
               style={{
@@ -1066,10 +1225,14 @@ function Products() {
                 fontWeight: 500,
               }}
             >
-              La méthode complète pour créer et vendre ta première landing page premium — depuis ton smartphone.
+              La méthode complète pour concevoir, coder et publier des landing pages premium — uniquement depuis ton smartphone.
             </p>
-            {['7 chapitres, 60+ pages', 'Du brief à la publication', 'Prompts inclus à chaque étape', 'Accès à vie'].map((f) => (
-              <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
+            {['13 chapitres étape par étape', "De l'idée au site publié", 'Workflow complet Figma Make → IA → GitHub → Netlify', 'Accès à vie + futures mises à jour'].map((f, i) => (
+              <div
+                key={f}
+                data-pop
+                style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, ['--pop-delay' as string]: `${i * 90}ms` } as any}
+              >
                 <div
                   style={{
                     width: 18,
@@ -1087,8 +1250,13 @@ function Products() {
                 <span style={{ fontSize: 13.5, color: MID, fontFamily: SANS, fontWeight: 500 }}>{f}</span>
               </div>
             ))}
-            <button
+            <a
+              href={CHARIOW}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="interactive"
               style={{
+                display: 'block',
                 width: '100%',
                 background: K,
                 color: '#fff',
@@ -1101,17 +1269,21 @@ function Products() {
                 cursor: 'pointer',
                 marginTop: 10,
                 letterSpacing: -0.2,
+                textAlign: 'center',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
               }}
             >
               Accéder à la méthode →
-            </button>
+            </a>
           </div>
         </div>
 
         {/* Card 2 — Black — Blueprint Pack */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div data-reveal="right" style={{ position: 'relative', zIndex: 1 }}>
           {/* Badge overflowing top edge */}
           <div
+            data-pop
             style={{
               position: 'absolute',
               top: -14,
@@ -1126,9 +1298,10 @@ function Products() {
               fontFamily: SANS,
               boxShadow: '0 4px 14px rgba(0,0,0,0.16)',
               letterSpacing: 0.2,
+              ['--pop-delay' as string]: '350ms',
             }}
           >
-            Blueprint Pack
+            L'accélérateur
           </div>
 
           <div
@@ -1140,25 +1313,21 @@ function Products() {
             }}
           >
             <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.42)', fontFamily: SANS, fontWeight: 600, marginBottom: 6 }}>
-              Blueprint Pack
+              Blueprint Pack™
             </div>
-            {/* Price placeholder */}
             <div
               style={{
                 display: 'inline-block',
-                fontSize: 34,
+                fontSize: 30,
                 fontWeight: 800,
-                color: 'rgba(255,176,0,0.45)',
+                color: Y,
                 fontFamily: SANS,
-                letterSpacing: -1.5,
-                marginBottom: 8,
+                letterSpacing: -1.2,
+                marginBottom: 10,
                 lineHeight: 1,
-                border: `2px dashed rgba(255,176,0,0.3)`,
-                borderRadius: 8,
-                padding: '2px 12px',
               }}
             >
-              [PRIX]
+              10 000 FCFA
             </div>
             <p
               style={{
@@ -1170,10 +1339,14 @@ function Products() {
                 fontWeight: 500,
               }}
             >
-              30+ prompts prêts à l'emploi pour générer textes, structure et design en quelques minutes.
+              Les prompts exacts que j'utilise pour créer plus vite, écrire de meilleurs textes, générer des designs et guider mes assistants IA.
             </p>
-            {['30+ prompts testés', 'Textes, structure, design', 'Compatible Figma Make / ChatGPT / Claude', 'Mises à jour incluses'].map((f) => (
-              <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginBottom: 9 }}>
+            {['30+ prompts testés en production', 'Copywriting, structure, design & développement', 'Compatibles ChatGPT • Claude • Figma Make', 'Nouveaux prompts ajoutés gratuitement'].map((f, i) => (
+              <div
+                key={f}
+                data-pop
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginBottom: 9, ['--pop-delay' as string]: `${i * 90}ms` } as any}
+              >
                 <div
                   style={{
                     width: 18,
@@ -1194,8 +1367,13 @@ function Products() {
                 </span>
               </div>
             ))}
-            <button
+            <a
+              href={CHARIOW}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="interactive"
               style={{
+                display: 'block',
                 width: '100%',
                 background: Y,
                 color: K,
@@ -1209,10 +1387,133 @@ function Products() {
                 marginTop: 10,
                 boxShadow: '0 8px 22px rgba(255,176,0,0.35)',
                 letterSpacing: -0.2,
+                textAlign: 'center',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
               }}
             >
               Obtenir le Blueprint →
-            </button>
+            </a>
+          </div>
+        </div>
+
+        {/* Card 3 — Full width, yellow — Creator Bundle */}
+        <div data-reveal="scale" style={{ position: 'relative', marginTop: 40, zIndex: 1, ['--reveal-delay' as string]: '150ms' }}>
+          <div
+            data-pop
+            style={{
+              position: 'absolute',
+              top: -14,
+              left: 22,
+              zIndex: 3,
+              background: K,
+              color: Y,
+              borderRadius: 100,
+              padding: '4px 14px',
+              fontSize: 10,
+              fontWeight: 800,
+              fontFamily: SANS,
+              boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+              letterSpacing: 0.2,
+              ['--pop-delay' as string]: '380ms',
+            }}
+          >
+            Le plus complet
+          </div>
+
+          <div
+            style={{
+              background: Y,
+              borderRadius: 26,
+              padding: '36px 22px 26px',
+              boxShadow: '0 20px 50px rgba(255,176,0,0.3)',
+            }}
+          >
+            <div style={{ fontSize: 11.5, color: 'rgba(3,3,3,0.55)', fontFamily: SANS, fontWeight: 700, marginBottom: 6 }}>
+              Creator Bundle™
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 32, fontWeight: 800, color: K, fontFamily: SANS, letterSpacing: -1.2, lineHeight: 1 }}>
+                18 000 FCFA
+              </span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: 'rgba(3,3,3,0.4)', fontFamily: SANS, textDecoration: 'line-through' }}>
+                25 000 FCFA
+              </span>
+            </div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: K, fontFamily: SANS, marginBottom: 16 }}>
+              Tu économises 7 000 FCFA · Paiement unique
+            </div>
+
+            <p
+              style={{
+                fontSize: 13.5,
+                color: 'rgba(3,3,3,0.75)',
+                fontFamily: SANS,
+                margin: '0 0 18px',
+                lineHeight: 1.6,
+                fontWeight: 500,
+              }}
+            >
+              Le système complet que j'utilise au quotidien pour créer des landing pages premium depuis mon téléphone — avec les prompts, et un accès direct à moi si tu bloques quelque part.
+            </p>
+
+            {[
+              'Phone2Page™ Masterclass',
+              'Blueprint Pack™',
+              'Accès direct à moi sur Telegram',
+              'Toutes les futures mises à jour offertes',
+              'Réservé aux 45 premiers membres',
+            ].map((f, i) => (
+              <div
+                key={f}
+                data-pop
+                style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9, ['--pop-delay' as string]: `${i * 80}ms` } as any}
+              >
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    background: K,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CheckIcon />
+                </div>
+                <span style={{ fontSize: 13.5, color: K, fontFamily: SANS, fontWeight: 600 }}>{f}</span>
+              </div>
+            ))}
+
+            <a
+              href={CHARIOW}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="interactive pulse-cta"
+              style={{
+                display: 'block',
+                width: '100%',
+                background: K,
+                color: Y,
+                border: 'none',
+                borderRadius: 14,
+                padding: '15px 0',
+                fontFamily: SANS,
+                fontWeight: 800,
+                fontSize: 14.5,
+                cursor: 'pointer',
+                marginTop: 12,
+                letterSpacing: -0.2,
+                textAlign: 'center',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
+              }}
+            >
+              Rejoindre le Creator Bundle →
+            </a>
           </div>
         </div>
       </div>
@@ -1265,7 +1566,7 @@ function CTAFinal() {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'relative', zIndex: 1 }} data-reveal="scale">
         {/* Label */}
         <div
           style={{
@@ -1322,12 +1623,12 @@ function CTAFinal() {
             marginRight: 'auto',
           }}
         >
-          J'ai déjà créé 10+ sites depuis mon téléphone. Page LT1 est le prochain.
+          J'ai déjà créé 10+ sites depuis mon téléphone. Prends la méthode, crée le tien.
         </p>
 
         {/* Dotted curve path from text toward button */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
-          <svg width="180" height="64" viewBox="0 0 180 64" fill="none">
+          <svg data-draw style={{ ['--draw-delay' as any]: '400ms' }} width="180" height="64" viewBox="0 0 180 64" fill="none">
             <path
               d="M20 8 C56 -8 136 48 162 56"
               stroke={Y}
@@ -1349,7 +1650,11 @@ function CTAFinal() {
         </div>
 
         {/* CTA button */}
-        <button
+        <a
+          href="https://malogbn.mychariow.online"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pulse-cta"
           style={{
             background: Y,
             color: K,
@@ -1365,11 +1670,12 @@ function CTAFinal() {
             alignItems: 'center',
             gap: 8,
             letterSpacing: -0.3,
+            textDecoration: 'none',
           }}
         >
-          Rejoindre Phone2Page™
+          Découvrir la boutique
           <span style={{ fontSize: 19, fontWeight: 400 }}>→</span>
-        </button>
+        </a>
 
         <p
           style={{
@@ -1420,10 +1726,17 @@ function Footer() {
       </div>
 
       <div style={{ display: 'flex', gap: 22, marginBottom: 26, flexWrap: 'wrap' as any }}>
-        {['Boutique', 'Masterclass', 'Blueprint', 'Contact'].map((link) => (
+        {[
+          { label: 'Boutique', href: 'https://malogbn.mychariow.online' },
+          { label: 'Masterclass', href: '#produits' },
+          { label: 'Blueprint', href: '#produits' },
+          { label: 'Contact', href: '#' }, // TODO: lien contact
+        ].map((link) => (
           <a
-            key={link}
-            href="#"
+            key={link.label}
+            href={link.href}
+            target={link.href.startsWith('http') ? '_blank' : undefined}
+            rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
             style={{
               fontSize: 13.5,
               color: GRAY,
@@ -1432,7 +1745,7 @@ function Footer() {
               textDecoration: 'none',
             }}
           >
-            {link}
+            {link.label}
           </a>
         ))}
       </div>
@@ -1483,6 +1796,7 @@ function Footer() {
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false)
+  useScrollReveal()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
