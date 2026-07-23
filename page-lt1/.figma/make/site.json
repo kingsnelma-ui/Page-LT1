@@ -1,0 +1,10 @@
+{
+  "description": "Page LT1 — la boutique Phone2Page™ et ses produits : Masterclass et Blueprint Pack, la méthode pour créer des landing pages premium depuis un smartphone.",
+  "robots": {
+    "index": true
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

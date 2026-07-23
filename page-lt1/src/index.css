@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+}
+
+.interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.interactive:hover {
+  transform: translateY(-3px);
+}
+.interactive:active {
+  transform: translateY(-1px) scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .interactive, .interactive:hover, .interactive:active {
+    transform: none;
+    transition: none;
+  }
+}
