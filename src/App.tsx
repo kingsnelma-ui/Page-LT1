@@ -1009,6 +1009,178 @@ function SiteCard({ card }: { card: typeof SITE_CARDS[number] }) {
   )
 }
 
+function PourQui() {
+  const profiles = [
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={K} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="3" width="16" height="13" rx="2" />
+          <path d="M7 16v1M13 16v1M5 19h10" />
+          <path d="M7 8h6M7 11h4" />
+        </svg>
+      ),
+      label: 'Créateurs',
+      title: 'Produits digitaux',
+      benefit: 'Lance ton ebook ou ta formation sans freelance, sans agence.',
+      accent: true,
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={K} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="10" cy="7" r="3" />
+          <path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" />
+          <path d="M14 3l2 2-2 2" />
+        </svg>
+      ),
+      label: 'Freelances',
+      title: 'Portfolio & offres',
+      benefit: 'Présente ton expertise avec une page qui convertit vraiment.',
+      accent: false,
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={K} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z" />
+        </svg>
+      ),
+      label: 'Étudiants',
+      title: 'Premiers projets',
+      benefit: 'Construis ton personal branding avant même de diplômer.',
+      accent: false,
+    },
+  ]
+
+  return (
+    <section style={{ backgroundColor: K, paddingTop: '64px', paddingBottom: '72px' }}>
+      <div className="max-w-[390px] mx-auto px-5" style={{ maxWidth: 390, margin: '0 auto', padding: '0 22px' }}>
+        {/* Header */}
+        <div data-reveal>
+          <p
+            style={{
+              fontFamily: SANS,
+              fontWeight: 600,
+              fontSize: '11px',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'rgba(255,255,255,0.3)',
+              marginBottom: '16px',
+            }}
+          >
+            Pour qui
+          </p>
+          <h2
+            style={{
+              fontFamily: SANS,
+              fontWeight: 700,
+              fontSize: '28px',
+              lineHeight: 1.15,
+              letterSpacing: '-0.025em',
+              color: '#FFFFFF',
+              marginBottom: '36px',
+            }}
+          >
+            Fait pour{' '}
+            <span style={{ fontFamily: SERIF, fontStyle: 'italic', fontWeight: 400, color: Y }}>
+              toi
+            </span>{' '}
+            si tu veux aller vite.
+          </h2>
+        </div>
+
+        {/* Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {profiles.map((p, i) => (
+            <div
+              key={i}
+              data-reveal
+              style={{
+                backgroundColor: p.accent ? Y : 'rgba(255,255,255,0.05)',
+                border: p.accent ? 'none' : '1px solid rgba(255,255,255,0.07)',
+                borderRadius: '20px',
+                padding: '22px 20px',
+                position: 'relative',
+                ['--reveal-delay' as string]: `${i * 130}ms`,
+              }}
+            >
+              {p.accent && (
+                <span
+                  data-pop
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    backgroundColor: 'rgba(3,3,3,0.15)',
+                    color: K,
+                    fontFamily: SANS,
+                    fontWeight: 700,
+                    fontSize: '9px',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    borderRadius: '5px',
+                    padding: '3px 8px',
+                    ['--pop-delay' as string]: '250ms',
+                  }}
+                >
+                  Populaire
+                </span>
+              )}
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: p.accent ? 'rgba(3,3,3,0.12)' : 'rgba(255,255,255,0.07)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '14px',
+                }}
+              >
+                <div style={{ filter: p.accent ? 'none' : 'invert(1)' }}>{p.icon}</div>
+              </div>
+              <p
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 600,
+                  fontSize: '10px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: p.accent ? 'rgba(3,3,3,0.5)' : 'rgba(255,255,255,0.35)',
+                  marginBottom: '4px',
+                }}
+              >
+                {p.label}
+              </p>
+              <h3
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 700,
+                  fontSize: '17px',
+                  letterSpacing: '-0.02em',
+                  color: p.accent ? K : '#FFFFFF',
+                  marginBottom: '8px',
+                }}
+              >
+                {p.title}
+              </h3>
+              <p
+                style={{
+                  fontFamily: SANS,
+                  fontSize: '13px',
+                  lineHeight: 1.5,
+                  color: p.accent ? 'rgba(3,3,3,0.65)' : 'rgba(255,255,255,0.45)',
+                }}
+              >
+                {p.benefit}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function Proof() {
   const avatarData = [
     { initial: 'M', color: '#C7B8A8', offset: 0 },
@@ -1086,6 +1258,209 @@ function Proof() {
 }
 
 /* ─── 5. LES PRODUITS ─── */
+
+function LaMethode() {
+  const steps = [
+    {
+      num: '01',
+      title: 'Cadrer ton offre',
+      desc: "Un prompt, dix minutes. L'IA structure ton message en une page claire.",
+      panel: false,
+      right: false,
+    },
+    {
+      num: '02',
+      title: 'Générer la structure',
+      desc: 'La méthode Phone2Page™ te guide section par section.',
+      panel: true,
+      right: true,
+    },
+    {
+      num: '03',
+      title: 'Designer sans designer',
+      desc: 'Couleurs, typo, espacement — tout est décidé par la méthode, pas par le hasard.',
+      panel: false,
+      right: false,
+    },
+    {
+      num: '04',
+      title: 'Publier & convertir',
+      desc: "Ta page est live en moins d'une journée. Tu commences à vendre.",
+      panel: true,
+      right: true,
+    },
+  ]
+
+  return (
+    <section className="max-w-[390px] mx-auto px-5 py-16" style={{ maxWidth: 390, margin: '0 auto', padding: '64px 22px' }}>
+      {/* Header */}
+      <div data-reveal>
+        <p
+          style={{
+            fontFamily: SANS,
+            fontWeight: 600,
+            fontSize: '11px',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'rgba(3,3,3,0.35)',
+            marginBottom: '12px',
+          }}
+        >
+          La méthode
+        </p>
+        <h2
+          style={{
+            fontFamily: SANS,
+            fontWeight: 800,
+            fontSize: '30px',
+            lineHeight: 1.1,
+            letterSpacing: '-0.03em',
+            color: K,
+            marginBottom: '48px',
+          }}
+        >
+          La méthode{' '}
+          <span style={{ color: Y }}>Phone2Page™</span>
+        </h2>
+      </div>
+
+      {/* Steps — zigzag reveal follows the existing left/right offset */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {steps.map((step, i) =>
+          step.panel ? (
+            <MethodeStepPanel key={i} step={step} />
+          ) : (
+            <MethodeStepPlain key={i} step={step} />
+          )
+        )}
+      </div>
+    </section>
+  )
+}
+
+function MethodeStepPlain({ step }: { step: { num: string; title: string; desc: string; right: boolean } }) {
+  return (
+    <div
+      data-reveal="left"
+      style={{ paddingLeft: step.right ? '32px' : '0', paddingRight: step.right ? '0' : '32px' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+        <span
+          style={{
+            fontFamily: SERIF,
+            fontStyle: 'italic',
+            fontSize: '52px',
+            lineHeight: 1,
+            color: 'rgba(3,3,3,0.1)',
+            flexShrink: 0,
+            marginTop: '-8px',
+          }}
+        >
+          {step.num}
+        </span>
+        <div>
+          <h3
+            style={{
+              fontFamily: SANS,
+              fontWeight: 700,
+              fontSize: '17px',
+              letterSpacing: '-0.02em',
+              color: K,
+              marginBottom: '6px',
+            }}
+          >
+            {step.title}
+          </h3>
+          <p style={{ fontFamily: SANS, fontSize: '14px', lineHeight: 1.55, color: 'rgba(3,3,3,0.55)' }}>
+            {step.desc}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MethodeStepPanel({ step }: { step: { num: string; title: string; desc: string; right: boolean } }) {
+  const activeDot = step.num === '02' ? 1 : 3
+  return (
+    <div data-reveal="right" style={{ marginLeft: step.right ? '20px' : '0', marginRight: step.right ? '0' : '20px' }}>
+      <div
+        style={{
+          backgroundColor: K,
+          borderRadius: '24px',
+          padding: '22px 20px',
+          position: 'relative',
+          boxShadow: '0 20px 48px rgba(3,3,3,0.14)',
+        }}
+      >
+        {/* Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <span
+            data-pop
+            style={{
+              backgroundColor: Y,
+              color: K,
+              fontFamily: SANS,
+              fontWeight: 700,
+              fontSize: '10px',
+              borderRadius: '6px',
+              padding: '4px 10px',
+              letterSpacing: '0.04em',
+              ['--pop-delay' as string]: '200ms',
+            }}
+          >
+            Étape {step.num}
+          </span>
+          <span
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.07)',
+              color: 'rgba(255,255,255,0.35)',
+              fontFamily: SANS,
+              fontSize: '10px',
+              borderRadius: '6px',
+              padding: '4px 10px',
+            }}
+          >
+            IA + méthode
+          </span>
+        </div>
+
+        <h3
+          style={{
+            fontFamily: SANS,
+            fontWeight: 700,
+            fontSize: '18px',
+            letterSpacing: '-0.02em',
+            color: '#FFFFFF',
+            marginBottom: '8px',
+          }}
+        >
+          {step.title}
+        </h3>
+        <p style={{ fontFamily: SANS, fontSize: '13px', lineHeight: 1.55, color: 'rgba(255,255,255,0.45)' }}>
+          {step.desc}
+        </p>
+
+        {/* Progress dots — light up one by one */}
+        <div style={{ display: 'flex', gap: '5px', marginTop: '18px' }}>
+          {[0, 1, 2, 3].map((d) => (
+            <div
+              key={d}
+              data-pop
+              style={{
+                height: '3px',
+                width: d === activeDot ? '24px' : '8px',
+                borderRadius: '2px',
+                backgroundColor: d === activeDot ? Y : 'rgba(255,255,255,0.12)',
+                ['--pop-delay' as string]: `${400 + d * 90}ms`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function Products() {
   const CHARIOW = 'https://malogbn.mychariow.online'
@@ -1341,7 +1716,7 @@ function Products() {
             >
               Les prompts exacts que j'utilise pour créer plus vite, écrire de meilleurs textes, générer des designs et guider mes assistants IA.
             </p>
-            {['30+ prompts testés en production', 'Copywriting, structure, design & développement', 'Compatibles ChatGPT • Claude • Figma Make', 'Nouveaux prompts ajoutés gratuitement'].map((f, i) => (
+            {['10 prompts prêts à l\'emploi, classés par usage', 'Design, contenu, code et vente — chaque étape couverte', 'La méthode de prompting expliquée (pas juste copier-coller)', 'Compatibles ChatGPT • Claude • Figma Make'].map((f, i) => (
               <div
                 key={f}
                 data-pop
@@ -1817,7 +2192,9 @@ export default function App() {
       <Header scrolled={scrolled} />
       <Hero />
       <Problem />
+      <PourQui />
       <Proof />
+      <LaMethode />
       <Products />
       <CTAFinal />
       <Footer />
