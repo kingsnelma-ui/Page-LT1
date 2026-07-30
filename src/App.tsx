@@ -355,7 +355,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
         </span>
       </div>
       <a
-        href="https://malogbn.mychariow.online"
+        href="https://phone2page-08.mychariow.com"
         target="_blank"
         rel="noopener noreferrer"
         className="interactive"
@@ -1463,7 +1463,7 @@ function MethodeStepPanel({ step }: { step: { num: string; title: string; desc: 
 }
 
 function Products() {
-  const CHARIOW = 'https://malogbn.mychariow.online'
+  const CHARIOW = 'https://phone2page-08.mychariow.com'
   return (
     <section
       id="produits"
@@ -2026,7 +2026,7 @@ function CTAFinal() {
 
         {/* CTA button */}
         <a
-          href="https://malogbn.mychariow.online"
+          href="https://phone2page-08.mychariow.com"
           target="_blank"
           rel="noopener noreferrer"
           className="pulse-cta"
@@ -2102,7 +2102,7 @@ function Footer() {
 
       <div style={{ display: 'flex', gap: 22, marginBottom: 26, flexWrap: 'wrap' as any }}>
         {[
-          { label: 'Boutique', href: 'https://malogbn.mychariow.online' },
+          { label: 'Boutique', href: 'https://phone2page-08.mychariow.com' },
           { label: 'Masterclass', href: '#produits' },
           { label: 'Blueprint', href: '#produits' },
           { label: 'Contact', href: '#' }, // TODO: lien contact
