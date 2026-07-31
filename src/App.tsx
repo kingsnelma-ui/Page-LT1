@@ -692,6 +692,120 @@ function Hero() {
 
 /* ─── 3. LE PROBLÈME ─── */
 
+function Bienvenue() {
+  return (
+    <section style={{ backgroundColor: K, padding: '52px 22px 56px', position: 'relative', overflow: 'hidden' }}>
+      {/* Decorative dashed circle, off-center — keeps asymmetry rule */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -40,
+          right: -40,
+          width: 140,
+          height: 140,
+          borderRadius: '50%',
+          border: `1.5px dashed rgba(255,176,0,0.25)`,
+        }}
+      />
+
+      {/* Message icon — pops in first */}
+      <div
+        data-pop
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 14,
+          background: Y,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 18,
+          boxShadow: '0 8px 22px rgba(255,176,0,0.3)',
+          ['--pop-delay' as string]: '100ms',
+        }}
+      >
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path
+            d="M3 5.5C3 4.12 4.12 3 5.5 3h11C17.88 3 19 4.12 19 5.5v7c0 1.38-1.12 2.5-2.5 2.5H9l-4.5 3.5V15H5.5C4.12 15 3 13.88 3 12.5v-7Z"
+            stroke={K}
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+          <path d="M7 8h8M7 11h5" stroke={K} strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      </div>
+
+      <p
+        data-reveal
+        style={{
+          fontFamily: SANS,
+          fontWeight: 600,
+          fontSize: 10,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.35)',
+          marginBottom: 12,
+          ['--reveal-delay' as string]: '180ms',
+        }}
+      >
+        Message direct
+      </p>
+
+      <h2
+        style={{
+          fontFamily: SANS,
+          fontWeight: 800,
+          fontSize: 25,
+          lineHeight: 1.2,
+          color: '#fff',
+          letterSpacing: -0.6,
+          marginBottom: 14,
+          minHeight: 60,
+        }}
+      >
+        <TypewriterText text="Bienvenue sur Page LT1." speed={55} />
+      </h2>
+
+      <p
+        data-reveal
+        style={{
+          fontFamily: SANS,
+          fontSize: 14,
+          lineHeight: 1.65,
+          color: 'rgba(255,255,255,0.55)',
+          fontWeight: 500,
+          maxWidth: 300,
+          marginBottom: 22,
+          ['--reveal-delay' as string]: '900ms',
+        }}
+      >
+        C'est le résultat auquel vous pouvez aspirer avec ma méthode — conçue, codée et publiée à 100% depuis un téléphone.
+      </p>
+
+      <a
+        href="https://phone2page-08.mychariow.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-reveal
+        className="interactive"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          fontFamily: SANS,
+          fontWeight: 700,
+          fontSize: 13.5,
+          color: Y,
+          textDecoration: 'none',
+          ['--reveal-delay' as string]: '1000ms',
+        }}
+      >
+        Découvrir la boutique <span style={{ fontSize: 15 }}>→</span>
+      </a>
+    </section>
+  )
+}
+
 function Problem() {
   return (
     <section
@@ -2191,6 +2305,7 @@ export default function App() {
     >
       <Header scrolled={scrolled} />
       <Hero />
+      <Bienvenue />
       <Problem />
       <PourQui />
       <Proof />
